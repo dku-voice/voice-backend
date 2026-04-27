@@ -8,7 +8,7 @@
 ## 브랜치 규칙
 1. main에 직접 push 금지
 2. 모든 작업은 feature 브랜치에서 시작
-3. develop으로 PR 후 팀원 1명 이상 리뷰 필수
+3. develop으로 PR 후 머지
 4. develop → main PR은 PM 김진우 승인 필수
 
 ## 커밋 메시지 규칙
