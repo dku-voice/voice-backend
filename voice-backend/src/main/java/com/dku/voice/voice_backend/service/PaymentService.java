@@ -9,33 +9,80 @@ import com.dku.voice.voice_backend.entity.Payment;
 import com.dku.voice.voice_backend.repository.OrderRepository;
 import com.dku.voice.voice_backend.repository.PaymentRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.redisson.api.RLock;
+import org.redisson.api.RedissonClient;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import java.time.LocalDateTime;
 
+import java.time.LocalDateTime;
+import java.util.concurrent.TimeUnit;
+
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class PaymentService {
 
     private final PaymentRepository paymentRepository;
     private final OrderRepository orderRepository;
+    private final RedissonClient redissonClient;
+
+    // 락 키 prefix
+    private static final String PAYMENT_LOCK_PREFIX = "lock:payment:";
+    // 락 대기 시간 (최대 3초 대기)
+    private static final long LOCK_WAIT_TIME = 3L;
+    // 락 유지 시간 (10초 후 자동 해제 - 데드락 방지)
+    private static final long LOCK_LEASE_TIME = 10L;
 
     /**
-     * 결제 승인 (2주차)
-     * 1. 주문 조회
-     * 2. 위변조 검증: 요청 금액 vs DB 주문 금액 비교
-     * 3. 중복 결제 검증: pgTransactionId 중복 확인
-     * 4. Payment 저장 + Order 상태 PAID 변경
+     * 결제 승인 (4주차 - 분산 락 적용)
+     * 1. Redis 분산 락 획득 (orderId 기준)
+     * 2. 주문 조회
+     * 3. 이미 결제된 주문인지 확인 (상태 검증)
+     * 4. 위변조 검증
+     * 5. pgTransactionId 중복 확인
+     * 6. Payment 저장 + Order 상태 PAID 변경
+     * 7. 락 해제
+     */
+    public PaymentResponse confirmPayment(PaymentRequest request) {
+        String lockKey = PAYMENT_LOCK_PREFIX + request.getOrderId();
+        RLock lock = redissonClient.getLock(lockKey);
+
+        try {
+            // 락 획득 시도 (최대 3초 대기, 10초 후 자동 해제)
+            boolean acquired = lock.tryLock(LOCK_WAIT_TIME, LOCK_LEASE_TIME, TimeUnit.SECONDS);
+
+            if (!acquired) {
+                throw new IllegalStateException("현재 결제가 진행 중입니다. 잠시 후 다시 시도해주세요.");
+            }
+
+            log.info("[Payment] 분산 락 획득 - orderId={}", request.getOrderId());
+            return processConfirmPayment(request);
+
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new IllegalStateException("결제 처리 중 오류가 발생했습니다.");
+        } finally {
+            // 락이 현재 스레드에 의해 유지되고 있을 때만 해제
+            if (lock.isHeldByCurrentThread()) {
+                lock.unlock();
+                log.info("[Payment] 분산 락 해제 - orderId={}", request.getOrderId());
+            }
+        }
+    }
+
+    /**
+     * 실제 결제 처리 로직 (락 안에서 실행)
      */
     @Transactional
-    public PaymentResponse confirmPayment(PaymentRequest request) {
+    protected PaymentResponse processConfirmPayment(PaymentRequest request) {
 
         // 1. 주문 조회
         Order order = orderRepository.findById(request.getOrderId())
                 .orElseThrow(() -> new IllegalArgumentException(
                         "주문을 찾을 수 없습니다. orderId=" + request.getOrderId()));
 
-        // 2. 이미 결제된 주문인지 확인 (Order.status 기준)
+        // 2. 이미 결제된 주문인지 확인 (분산 락 안에서 상태 검증 - 최종 방어선)
         if (order.getStatus() == Order.OrderStatus.PAID) {
             throw new IllegalStateException("이미 결제 완료된 주문입니다. orderId=" + order.getId());
         }
@@ -49,7 +96,8 @@ public class PaymentService {
 
         // 4. pgTransactionId 중복 확인
         if (paymentRepository.findByPgTransactionId(request.getPgTransactionId()).isPresent()) {
-            throw new IllegalStateException("이미 사용된 거래 ID입니다. pgTransactionId=" + request.getPgTransactionId());
+            throw new IllegalStateException(
+                    "이미 사용된 거래 ID입니다. pgTransactionId=" + request.getPgTransactionId());
         }
 
         // 5. 결제 수단 파싱

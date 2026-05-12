@@ -24,6 +24,20 @@ spring:
       # docker-compose에서 6379 포트로 뚫어놓은 Redis 연결
       host: localhost
       port: 6379
+ 
+  cache:
+    type: redis            # 캐시 구현체로 Redis 사용
+ 
+# Redisson 분산 락 로그 레벨 (개발 시 확인용)
+logging:
+  level:
+    com.dku.voice.voice_backend.service.PaymentService: INFO
+    com.dku.voice.voice_backend.service.MenuCacheService: INFO
 
 server:
   port: 8080
+
+
+ 
+
+ 

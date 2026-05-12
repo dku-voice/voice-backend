@@ -2,19 +2,15 @@ package com.dku.voice.voice_backend.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
-import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.UpdateTimestamp;
-
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
-@Getter
-@Builder
-@NoArgsConstructor
-@AllArgsConstructor
 @Entity
-@Table(name = "categories")
+@Table(name = "category")
+@Getter
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@AllArgsConstructor
+@Builder
 public class Category {
 
     @Id
@@ -28,22 +24,13 @@ public class Category {
     private String nameEn;
 
     @Column(name = "sort_order", nullable = false)
-    private int sortOrder;
+    private Integer sortOrder;
 
     @Column(name = "is_active", nullable = false)
     @Builder.Default
-    private boolean isActive = true;
-
-    @CreationTimestamp
-    @Column(name = "created_at", updatable = false)
-    private LocalDateTime createdAt;
-
-    @UpdateTimestamp
-    @Column(name = "updated_at")
-    private LocalDateTime updatedAt;
+    private Boolean isActive = true;
 
     @OneToMany(mappedBy = "category", fetch = FetchType.LAZY)
-    @OrderBy("sortOrder ASC")
     @Builder.Default
     private List<Menu> menus = new ArrayList<>();
 }

@@ -2,19 +2,15 @@ package com.dku.voice.voice_backend.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
-import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.UpdateTimestamp;
-
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
-@Getter
-@Builder
-@NoArgsConstructor
-@AllArgsConstructor
 @Entity
-@Table(name = "menus")
+@Table(name = "menu")
+@Getter
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@AllArgsConstructor
+@Builder
 public class Menu {
 
     @Id
@@ -31,44 +27,27 @@ public class Menu {
     @Column(name = "name_en", nullable = false, length = 100)
     private String nameEn;
 
-    @Column(name = "description_ko", columnDefinition = "TEXT")
-    private String descriptionKo;
-
-    @Column(name = "description_en", columnDefinition = "TEXT")
-    private String descriptionEn;
-
-    @Column(name = "price", nullable = false)
-    private int price;
+    @Column(nullable = false)
+    private Integer price;
 
     @Column(name = "image_url", length = 500)
     private String imageUrl;
 
-    @Column(name = "is_active", nullable = false)
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 20)
     @Builder.Default
-    private boolean isActive = true;
+    private MenuStatus status = MenuStatus.ACTIVE;
 
-    @Column(name = "is_limited", nullable = false)
+    @OneToMany(mappedBy = "menu", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     @Builder.Default
-    private boolean isLimited = false;
+    private List<MenuAllergen> menuAllergens = new ArrayList<>();
 
-    @Column(name = "stock")
-    private Integer stock;
+    @OneToOne(mappedBy = "menu", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    private MenuNutrient menuNutrient;
 
-    @Column(name = "sort_order", nullable = false)
-    private int sortOrder;
-
-    @CreationTimestamp
-    @Column(name = "created_at", updatable = false)
-    private LocalDateTime createdAt;
-
-    @UpdateTimestamp
-    @Column(name = "updated_at")
-    private LocalDateTime updatedAt;
-
-    @OneToMany(mappedBy = "menu", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
-    @Builder.Default
-    private List<MenuAllergen> allergens = new ArrayList<>();
-
-    @OneToOne(mappedBy = "menu", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
-    private MenuNutrient nutrient;
+    public enum MenuStatus {
+        ACTIVE,    // 정상 판매
+        SOLD_OUT,  // 품절 (재입고 가능, 프론트에서 흐리게 표시)
+        INACTIVE   // 비활성 (메뉴 목록에서 완전히 제외)
+    }
 }
