@@ -1,0 +1,38 @@
+spring:
+  datasource:
+    url: jdbc:mysql://localhost:3306/voicedb?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
+    username: root
+    password: voice1234
+    driver-class-name: com.mysql.cj.jdbc.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: validate       
+    properties:
+      hibernate:
+        format_sql: true
+    show-sql: true
+
+  flyway:
+    enabled: true                 # Flyway 활성화
+    baseline-on-migrate: true     # 기존 DB가 있어도 마이그레이션 시작
+    locations: classpath:db/migration  # 마이그레이션 파일 위치
+    
+  data:
+    redis:
+      host: localhost
+      port: 6379
+
+  cache:
+    type: redis
+
+cors:
+  allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:3000,http://localhost:5173}
+
+logging:
+  level:
+    com.dku.voice.voice_backend.service.PaymentService: INFO
+    com.dku.voice.voice_backend.service.MenuCacheService: INFO
+
+server:
+  port: 8080
