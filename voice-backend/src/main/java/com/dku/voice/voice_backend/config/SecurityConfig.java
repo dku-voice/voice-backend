@@ -37,10 +37,14 @@ public class SecurityConfig {
             .authorizeHttpRequests(auth -> auth
                 // ── 현재: 키오스크 공개 API 전체 허용 ──────────────────
                 .requestMatchers("/api/**").permitAll()
-
-                // ── 추후 9주차: 관리자/KDS API JWT 검증으로 교체 ────────
-                // .requestMatchers("/admin/**").authenticated()
-                // .requestMatchers("/kds/**").authenticated()
+                // ── Swagger UI 허용 ──────────────────────────────────
+                .requestMatchers(
+                    "/swagger-ui/**",
+                    "/swagger-ui.html",
+                    "/v3/api-docs/**"
+                ).permitAll()
+                 .requestMatchers("/admin/**").authenticated()
+                 .requestMatchers("/kds/**").authenticated()
 
                 .anyRequest().authenticated()
             );
