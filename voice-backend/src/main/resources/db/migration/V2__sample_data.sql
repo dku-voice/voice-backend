@@ -36,56 +36,56 @@ INSERT INTO menu (id, category_id, name_ko, name_en, description_ko, description
 -- 버거 (공식 단품 기준)
 (1,  1, '데리버거',             'Teri Burger',
      '달콤한 데리야끼 소스와 부드러운 패티의 만남', 'Soft patty with sweet teriyaki sauce',
-     2800, 'ACTIVE', 'https://placehold.co/400x300?text=Teri+Burger'),
+     2800, 'ACTIVE', 'https://dku-voice-assets.s3.ap-southeast-2.amazonaws.com/teri_burger.png'),
 
 (2,  1, '리아 새우버거',         'Ria Shrimp Burger',
      '통통한 새우 패티와 상큼한 토마토 소스', 'Plump shrimp patty with tangy tomato sauce',
-     4200, 'ACTIVE', 'https://placehold.co/400x300?text=Shrimp+Burger'),
+     4200, 'ACTIVE', 'https://dku-voice-assets.s3.ap-southeast-2.amazonaws.com/shrimp_burger.png'),
 
 (3,  1, '리아 불고기버거',        'Ria Bulgogi Burger',
      '불고기 양념 패티와 신선한 채소의 조화', 'Bulgogi-seasoned patty with fresh vegetables',
-     3800, 'ACTIVE', 'https://placehold.co/400x300?text=Bulgogi+Burger'),
+     3800, 'ACTIVE', 'https://dku-voice-assets.s3.ap-southeast-2.amazonaws.com/bulgogi_burger.png'),
 
 (4,  1, '클래식 치즈버거',        'Classic Cheese Burger',
      '두툼한 비프 패티에 진한 체다 치즈', 'Thick beef patty with rich cheddar cheese',
-     4000, 'ACTIVE', 'https://placehold.co/400x300?text=Classic+Cheese'),
+     4000, 'ACTIVE', 'https://dku-voice-assets.s3.ap-southeast-2.amazonaws.com/classic_cheese_burger.png'),
 
 (5,  1, '핫크리스피 치킨버거',    'Hot Crispy Chicken Burger',
      '바삭한 치킨 필레와 매콤한 소스', 'Crispy chicken fillet with spicy sauce',
-     4500, 'ACTIVE', 'https://placehold.co/400x300?text=Crispy+Chicken'),
+     4500, 'ACTIVE', 'https://dku-voice-assets.s3.ap-southeast-2.amazonaws.com/crispy_chicken_burger.png'),
 
 (6,  1, '더블 데리버거',          'Double Teri Burger',
      '데리야끼 패티 두 장으로 더욱 든든하게', 'Double teriyaki patties for a more satisfying meal',
-     4200, 'ACTIVE', 'https://placehold.co/400x300?text=Double+Teri'),
+     4200, 'ACTIVE', 'https://dku-voice-assets.s3.ap-southeast-2.amazonaws.com/double_teri_burger.png'),
 
 (7,  1, '더블 클래식 치즈버거',   'Double Classic Cheese Burger',
      '패티 두 장과 풍성한 치즈의 프리미엄 버거', 'Premium burger with double patties and generous cheese',
-     5500, 'ACTIVE', 'https://placehold.co/400x300?text=Double+Classic'),
+     5500, 'ACTIVE', 'https://dku-voice-assets.s3.ap-southeast-2.amazonaws.com/double_classic_cheese_burger.png'),
 
 (8,  1, '모짜렐라 베이컨버거',    'Mozzarella Bacon Burger',
      '쭉 늘어나는 모짜렐라와 바삭한 베이컨', 'Stretchy mozzarella with crispy bacon',
-     5800, 'ACTIVE', 'https://placehold.co/400x300?text=Mozzarella+Bacon'),
+     5800, 'ACTIVE', 'https://dku-voice-assets.s3.ap-southeast-2.amazonaws.com/mozzarella_bacon_burger.png'),
 
 -- 사이드
 (9,  2, '양념감자',   'Seasoned Fries',
      '어니언·치즈·칠리 소스 선택 가능한 양념 감자', 'Seasoned fries: choice of onion, cheese, or chili sauce',
-     2700, 'ACTIVE', 'https://placehold.co/400x300?text=Seasoned+Fries'),
+     2700, 'ACTIVE', 'https://dku-voice-assets.s3.ap-southeast-2.amazonaws.com/seasoned_fries.png'),
 
 (10, 2, '감자튀김',   'French Fries',
      '바삭하게 튀긴 황금빛 감자튀김', 'Crispy golden french fries',
-     2200, 'ACTIVE', 'https://placehold.co/400x300?text=French+Fries'),
+     2200, 'ACTIVE', 'https://dku-voice-assets.s3.ap-southeast-2.amazonaws.com/french_fries.png'),
 
 (11, 2, '치즈스틱',   'Cheese Sticks',
      '쭉 늘어나는 모짜렐라 치즈스틱', 'Stretchy mozzarella cheese sticks',
-     2900, 'ACTIVE', 'https://placehold.co/400x300?text=Cheese+Sticks'),
+     2900, 'ACTIVE', 'https://dku-voice-assets.s3.ap-southeast-2.amazonaws.com/cheese_sticks.png'),
 
 (12, 2, '통오징어링', 'Calamari Rings',
      '쫄깃한 오징어를 통째로 튀긴 오징어링', 'Whole squid rings fried to perfection',
-     3200, 'ACTIVE', 'https://placehold.co/400x300?text=Calamari+Rings'),
+     3200, 'ACTIVE', 'https://dku-voice-assets.s3.ap-southeast-2.amazonaws.com/calamari_rings.png'),
 
 (13, 2, '치킨너겟',   'Chicken Nuggets',
      '촉촉하고 바삭한 치킨너겟 6조각', 'Juicy and crispy chicken nuggets (6 pieces)',
-     2900, 'ACTIVE', 'https://placehold.co/400x300?text=Chicken+Nuggets');
+     2900, 'ACTIVE', 'https://dku-voice-assets.s3.ap-southeast-2.amazonaws.com/chicken_nuggets.png');
 
 -- ============================================================
 -- 4. 메뉴-알레르기 매핑 (롯데리아 공식 기준)
