@@ -21,6 +21,7 @@ public interface MenuRepository extends JpaRepository<Menu, Long> {
         LEFT JOIN FETCH m.menuAllergens ma
         LEFT JOIN FETCH ma.allergen
         LEFT JOIN FETCH m.menuNutrient
+        LEFT JOIN FETCH m.menuOptions
         WHERE m.status = 'ACTIVE'
         ORDER BY c.sortOrder ASC
         """)
@@ -36,6 +37,7 @@ public interface MenuRepository extends JpaRepository<Menu, Long> {
         LEFT JOIN FETCH m.menuAllergens ma
         LEFT JOIN FETCH ma.allergen
         LEFT JOIN FETCH m.menuNutrient
+        LEFT JOIN FETCH m.menuOptions
         WHERE m.status = 'ACTIVE'
           AND c.id = :categoryId
         ORDER BY c.sortOrder ASC
