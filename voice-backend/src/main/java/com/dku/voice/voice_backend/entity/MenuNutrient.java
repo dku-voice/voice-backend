@@ -25,12 +25,12 @@ public class MenuNutrient {
     @Column(nullable = false)
     private Integer sodium;
 
-    @Column(nullable = false, precision = 5, scale = 1)
+    @Column(nullable = false)
     private Double protein;
 
-    @Column(nullable = false, precision = 5, scale = 1)
+    @Column(nullable = false)
     private Double fat;
 
-    @Column(nullable = false, precision = 5, scale = 1)
+    @Column(nullable = false)
     private Double carbs;
 }

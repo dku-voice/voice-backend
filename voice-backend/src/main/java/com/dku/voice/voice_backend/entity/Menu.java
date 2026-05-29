@@ -4,7 +4,9 @@ import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.BatchSize;
 import java.util.ArrayList;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Set;
 
 @Entity
 @Table(name = "menu")
@@ -28,6 +30,12 @@ public class Menu {
     @Column(name = "name_en", nullable = false, length = 100)
     private String nameEn;
 
+    @Column(name = "description_ko", length = 255)
+    private String descriptionKo;
+
+    @Column(name = "description_en", length = 255)
+    private String descriptionEn;
+
     @Column(nullable = false)
     private Integer price;
 
@@ -41,13 +49,12 @@ public class Menu {
 
     @OneToMany(mappedBy = "menu", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     @Builder.Default
-    private List<MenuAllergen> menuAllergens = new ArrayList<>();
+    private Set<MenuAllergen> menuAllergens = new LinkedHashSet<>();
 
     @OneToOne(mappedBy = "menu", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     private MenuNutrient menuNutrient;
 
     @OneToMany(mappedBy = "menu", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
-    @BatchSize(size = 100)
     @Builder.Default
     private List<MenuOption> menuOptions = new ArrayList<>();
 

@@ -5,7 +5,7 @@
 -- ============================================================
 -- 1. 카테고리
 -- ============================================================
-INSERT INTO category (id, name_ko, name_en, display_order) VALUES
+INSERT INTO category (id, name_ko, name_en, sort_order) VALUES
 (1, '버거',   'Burger', 1),
 (2, '사이드', 'Side',   2),
 (3, '음료',   'Drink',  3);
