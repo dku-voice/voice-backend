@@ -2,7 +2,6 @@ package com.dku.voice.voice_backend.service;
 
 import com.dku.voice.voice_backend.dto.MenuResponse;
 import com.dku.voice.voice_backend.entity.Menu;
-
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.CacheEvict;
@@ -21,35 +20,29 @@ public class MenuCacheService {
 
     /**
      * 전체 활성 메뉴 조회 (캐시만)
-     * - Cache Hit  → Redis에서 바로 반환 (DB 조회 없음)
+     * - Cache Hit  → Redis에서 바로 반환
      * - Cache Miss → MenuService.findAllActive() 호출 후 Redis 저장 (TTL 30분)
-     * - 캐시 키: "menus::all"
+     * - MenuService에서 트랜잭션 안에 DTO 변환까지 완료되어 Session 문제 없음
      */
     @Cacheable(value = "menus", key = "'all'")
     public List<MenuResponse> getAllMenus() {
         log.info("[MenuCache] Cache Miss - DB 조회");
-        return menuService.findAllActive()
-                .stream()
-                .map(MenuResponse::from)
-                .toList();
+        return menuService.findAllActive();
     }
 
     /**
      * 카테고리별 활성 메뉴 조회 (캐시만)
-     * - 캐시 키: "menus::category:{categoryId}"
      */
     @Cacheable(value = "menus", key = "'category:' + #categoryId")
     public List<MenuResponse> getMenusByCategory(Long categoryId) {
         log.info("[MenuCache] Cache Miss - DB 조회 (categoryId={})", categoryId);
-        return menuService.findActiveByCategoryId(categoryId)
-                .stream()
-                .map(MenuResponse::from)
-                .toList();
+        return menuService.findActiveByCategoryId(categoryId);
     }
 
     /**
      * 메뉴 상태 변경 + 관련 캐시 부분 무효화 (관리자용)
-     * - 변경된 메뉴의 카테고리 캐시만 삭제
+     * - AdminMenuController 구현 시 호출
+     * - 전체 캐시 삭제 대신 변경된 메뉴의 카테고리 캐시만 삭제
      */
     @Caching(evict = {
         @CacheEvict(value = "menus", key = "'all'"),
@@ -60,4 +53,11 @@ public class MenuCacheService {
         return menuService.updateStatus(menuId, status);
     }
 
+    /**
+     * 메뉴 캐시 전체 무효화 (긴급 시 사용)
+     */
+    @CacheEvict(value = "menus", allEntries = true)
+    public void evictAllMenuCache() {
+        log.info("[MenuCache] 전체 캐시 삭제");
+    }
 }

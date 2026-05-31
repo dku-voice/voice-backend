@@ -1,12 +1,16 @@
 package com.dku.voice.voice_backend.dto;
 
 import com.dku.voice.voice_backend.entity.Menu;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import java.util.List;
 
 @Getter
 @Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class MenuResponse {
 
     private Long menuId;
@@ -49,6 +53,8 @@ public class MenuResponse {
 
     @Getter
     @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
     public static class NutrientInfo {
         private Integer calories;
         private Integer sodium;
@@ -69,6 +75,8 @@ public class MenuResponse {
 
     @Getter
     @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
     public static class MenuOptionInfo {
         private Long optionId;
         private String nameKo;
