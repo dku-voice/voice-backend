@@ -2,7 +2,6 @@ package com.dku.voice.voice_backend.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
-import org.hibernate.annotations.BatchSize;
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -57,6 +56,11 @@ public class Menu {
     @OneToMany(mappedBy = "menu", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     @Builder.Default
     private List<MenuOption> menuOptions = new ArrayList<>();
+
+    // 관리자 메뉴 상태 변경 시 사용
+    public void changeStatus(MenuStatus status) {
+        this.status = status;
+    }
 
     public enum MenuStatus {
         ACTIVE,    // 정상 판매

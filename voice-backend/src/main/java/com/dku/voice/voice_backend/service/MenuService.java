@@ -16,7 +16,6 @@ public class MenuService {
 
     /**
      * 전체 활성 메뉴 조회 (트랜잭션만)
-     * - FETCH JOIN으로 연관 데이터 한 번에 로딩
      */
     @Transactional(readOnly = true)
     public List<Menu> findAllActive() {
@@ -29,5 +28,18 @@ public class MenuService {
     @Transactional(readOnly = true)
     public List<Menu> findActiveByCategoryId(Long categoryId) {
         return menuRepository.findActiveByCategoryId(categoryId);
+    }
+
+    /**
+     * 메뉴 상태 변경 (관리자용)
+     * - 변경 후 캐시 무효화는 MenuCacheService.updateMenuStatus()에서 처리
+     */
+    @Transactional
+    public Menu updateStatus(Long menuId, Menu.MenuStatus status) {
+        Menu menu = menuRepository.findById(menuId)
+                .orElseThrow(() -> new IllegalArgumentException(
+                        "메뉴를 찾을 수 없습니다. menuId=" + menuId));
+        menu.changeStatus(status);
+        return menu;
     }
 }
