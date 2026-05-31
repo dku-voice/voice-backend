@@ -37,7 +37,8 @@ class PaymentIntegrationTest {
     @Autowired MenuRepository menuRepository;
     @Autowired MenuOptionRepository menuOptionRepository;
     @Autowired CacheManager cacheManager;
-
+    @Autowired MenuCacheService menuCacheService;
+    
     // 테스트용 주문 ID (각 테스트에서 공유)
     private static Long testOrderId;
 
@@ -239,12 +240,14 @@ class PaymentIntegrationTest {
     @org.junit.jupiter.api.Order(5)
     @DisplayName("[통합] Redis 캐싱 - 메뉴 캐시가 실제 Redis에 저장됐는지 확인")
     void integration_redis_menuCacheExists() {
-        // CacheWarmupRunner가 서버 시작 시 이미 캐싱함
+        // 명시적으로 캐시 워밍 호출
+        menuCacheService.getAllMenus();
+
         var cache = cacheManager.getCache("menus");
         assertThat(cache).isNotNull();
 
         var cachedMenus = cache.get("all");
         assertThat(cachedMenus).isNotNull();
         assertThat(cachedMenus.get()).isNotNull();
-    }
+        }
 }
