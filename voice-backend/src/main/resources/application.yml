@@ -1,23 +1,26 @@
 spring:
+  main:
+    allow-circular-references: true
+
   datasource:
     url: jdbc:mysql://localhost:3306/voicedb?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
     username: root
     password: voice1234
     driver-class-name: com.mysql.cj.jdbc.Driver
-
+  
   jpa:
     hibernate:
-      ddl-auto: validate       
+      ddl-auto: validate
     properties:
       hibernate:
         format_sql: true
     show-sql: true
 
   flyway:
-    enabled: true                 # Flyway 활성화
-    baseline-on-migrate: true     # 기존 DB가 있어도 마이그레이션 시작
-    locations: classpath:db/migration  # 마이그레이션 파일 위치
-    
+    enabled: true
+    baseline-on-migrate: true
+    locations: classpath:db/migration
+
   data:
     redis:
       host: localhost
@@ -25,6 +28,19 @@ spring:
 
   cache:
     type: redis
+
+# ────────────────────────────────────────────────────────────
+# CORS allowed-origins
+# 기본값: localhost:3000 (React), localhost:5173 (Vite)
+# 운영 배포 시: 환경변수로 실제 프론트 도메인 주입
+#   export CORS_ALLOWED_ORIGINS=https://kiosk.example.com
+# ────────────────────────────────────────────────────────────
+cors:
+  allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:3000,http://localhost:5173}
+
+
+toss:
+  secret-key: ${TOSS_SECRET_KEY:test_gsk_docs_OaPz8L5KdmQXkzRz3y47BMw6}
 
 logging:
   level:

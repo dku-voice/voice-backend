@@ -1,16 +1,16 @@
 package com.dku.voice.voice_backend.config;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
+import com.dku.voice.voice_backend.dto.ApiResponse;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
-import java.time.LocalDateTime;
 import java.util.stream.Collectors;
 
+@Slf4j
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
@@ -21,58 +21,47 @@ public class GlobalExceptionHandler {
      * - 지원하지 않는 결제 수단
      */
     @ExceptionHandler(IllegalArgumentException.class)
-    public ResponseEntity<ErrorResponse> handleIllegalArgument(IllegalArgumentException e) {
+    public ResponseEntity<ApiResponse<Void>> handleIllegalArgument(IllegalArgumentException e) {
+        log.warn("[400] {}", e.getMessage());
         return ResponseEntity.badRequest()
-                .body(ErrorResponse.of(400, e.getMessage()));
+                .body(ApiResponse.error(e.getMessage()));
     }
 
     /**
      * 충돌 상태 (409)
      * - 이미 결제 완료된 주문
-     * - 중복 paymentKey
+     * - 중복 pgTransactionId
      * - 취소 불가능한 결제 상태
      */
     @ExceptionHandler(IllegalStateException.class)
-    public ResponseEntity<ErrorResponse> handleIllegalState(IllegalStateException e) {
+    public ResponseEntity<ApiResponse<Void>> handleIllegalState(IllegalStateException e) {
+        log.warn("[409] {}", e.getMessage());
         return ResponseEntity.status(409)
-                .body(ErrorResponse.of(409, e.getMessage()));
+                .body(ApiResponse.error(e.getMessage()));
     }
 
     /**
      * @Valid 검증 실패 (400)
      * - 필수 필드 누락
      * - 수량 1 미만
-     * - 금액 0 이하
      */
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<ErrorResponse> handleValidation(MethodArgumentNotValidException e) {
+    public ResponseEntity<ApiResponse<Void>> handleValidation(MethodArgumentNotValidException e) {
         String message = e.getBindingResult().getFieldErrors().stream()
                 .map(FieldError::getDefaultMessage)
                 .collect(Collectors.joining(", "));
+        log.warn("[400] validation 실패: {}", message);
         return ResponseEntity.badRequest()
-                .body(ErrorResponse.of(400, message));
+                .body(ApiResponse.error(message));
     }
 
     /**
      * 예상치 못한 서버 오류 (500)
      */
     @ExceptionHandler(Exception.class)
-    public ResponseEntity<ErrorResponse> handleException(Exception e) {
+    public ResponseEntity<ApiResponse<Void>> handleException(Exception e) {
+        log.error("[500] {}", e.getMessage(), e);
         return ResponseEntity.internalServerError()
-                .body(ErrorResponse.of(500, "서버 오류가 발생했습니다."));
-    }
-
-    // ── ErrorResponse ────────────────────────────────────────────────────────
-
-    @Getter
-    @AllArgsConstructor
-    public static class ErrorResponse {
-        private int status;
-        private String message;
-        private LocalDateTime timestamp;
-
-        public static ErrorResponse of(int status, String message) {
-            return new ErrorResponse(status, message, LocalDateTime.now());
-        }
+                .body(ApiResponse.error("서버 오류가 발생했습니다."));
     }
 }

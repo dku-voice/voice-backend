@@ -1,5 +1,6 @@
 package com.dku.voice.voice_backend.controller;
 
+import com.dku.voice.voice_backend.dto.ApiResponse;
 import com.dku.voice.voice_backend.dto.OrderRequest;
 import com.dku.voice.voice_backend.dto.OrderResponse;
 import com.dku.voice.voice_backend.service.OrderService;
@@ -20,8 +21,9 @@ public class OrderController {
      * POST /api/orders
      */
     @PostMapping
-    public ResponseEntity<OrderResponse> createOrder(@RequestBody @Valid OrderRequest request) {
-        return ResponseEntity.ok(orderService.createOrder(request));
+    public ResponseEntity<ApiResponse<OrderResponse>> createOrder(
+            @RequestBody @Valid OrderRequest request) {
+        return ResponseEntity.ok(ApiResponse.success(orderService.createOrder(request)));
     }
 
     /**
@@ -29,7 +31,8 @@ public class OrderController {
      * GET /api/orders/{orderId}
      */
     @GetMapping("/{orderId}")
-    public ResponseEntity<OrderResponse> getOrder(@PathVariable Long orderId) {
-        return ResponseEntity.ok(orderService.getOrder(orderId));
+    public ResponseEntity<ApiResponse<OrderResponse>> getOrder(
+            @PathVariable Long orderId) {
+        return ResponseEntity.ok(ApiResponse.success(orderService.getOrder(orderId)));
     }
 }

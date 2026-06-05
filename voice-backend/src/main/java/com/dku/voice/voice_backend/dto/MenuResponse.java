@@ -1,12 +1,16 @@
 package com.dku.voice.voice_backend.dto;
 
 import com.dku.voice.voice_backend.entity.Menu;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import java.util.List;
 
 @Getter
 @Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class MenuResponse {
 
     private Long menuId;
@@ -20,6 +24,7 @@ public class MenuResponse {
     private List<String> allergensKo;
     private List<String> allergensEn;
     private NutrientInfo nutrient;
+    private List<MenuOptionInfo> options;
 
     public static MenuResponse from(Menu menu) {
         return MenuResponse.builder()
@@ -40,25 +45,52 @@ public class MenuResponse {
                 .nutrient(menu.getMenuNutrient() != null
                         ? NutrientInfo.from(menu.getMenuNutrient())
                         : null)
+                .options(menu.getMenuOptions().stream()
+                        .map(MenuOptionInfo::from)
+                        .toList())
                 .build();
     }
 
     @Getter
     @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
     public static class NutrientInfo {
         private Integer calories;
         private Integer sodium;
-        private Integer carbs;
-        private Integer protein;
-        private Integer fat;
+        private Double protein;
+        private Double fat;
+        private Double carbs;
 
         public static NutrientInfo from(com.dku.voice.voice_backend.entity.MenuNutrient nutrient) {
             return NutrientInfo.builder()
                     .calories(nutrient.getCalories())
                     .sodium(nutrient.getSodium())
-                    .carbs(nutrient.getCarbs())
                     .protein(nutrient.getProtein())
                     .fat(nutrient.getFat())
+                    .carbs(nutrient.getCarbs())
+                    .build();
+        }
+    }
+
+    @Getter
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class MenuOptionInfo {
+        private Long optionId;
+        private String nameKo;
+        private String nameEn;
+        private String optionType;   // "ADD" | "REMOVE"
+        private Integer extraPrice;
+
+        public static MenuOptionInfo from(com.dku.voice.voice_backend.entity.MenuOption option) {
+            return MenuOptionInfo.builder()
+                    .optionId(option.getId())
+                    .nameKo(option.getNameKo())
+                    .nameEn(option.getNameEn())
+                    .optionType(option.getOptionType())
+                    .extraPrice(option.getExtraPrice())
                     .build();
         }
     }

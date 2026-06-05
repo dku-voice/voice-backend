@@ -22,13 +22,15 @@ CREATE TABLE IF NOT EXISTS allergen (
 
 -- ── Menu ────────────────────────────────────────────────────────────────────
 CREATE TABLE IF NOT EXISTS menu (
-    id          BIGINT          NOT NULL AUTO_INCREMENT,
-    category_id BIGINT          NOT NULL,
-    name_ko     VARCHAR(100)    NOT NULL,
-    name_en     VARCHAR(100)    NOT NULL,
-    price       INT             NOT NULL,
-    image_url   VARCHAR(500),
-    status      VARCHAR(20)     NOT NULL DEFAULT 'ACTIVE',
+    id              BIGINT          NOT NULL AUTO_INCREMENT,
+    category_id     BIGINT          NOT NULL,
+    name_ko         VARCHAR(100)    NOT NULL,
+    name_en         VARCHAR(100)    NOT NULL,
+    description_ko  VARCHAR(255),
+    description_en  VARCHAR(255),
+    price           INT             NOT NULL,
+    image_url       VARCHAR(500),
+    status          VARCHAR(20)     NOT NULL DEFAULT 'ACTIVE',
     PRIMARY KEY (id),
     CONSTRAINT fk_menu_category FOREIGN KEY (category_id)
         REFERENCES category (id)
@@ -51,9 +53,9 @@ CREATE TABLE IF NOT EXISTS menu_nutrient (
     menu_id     BIGINT          NOT NULL UNIQUE,
     calories    INT             NOT NULL DEFAULT 0,
     sodium      INT             NOT NULL DEFAULT 0,
-    carbs       INT             NOT NULL DEFAULT 0,
-    protein     INT             NOT NULL DEFAULT 0,
-    fat         INT             NOT NULL DEFAULT 0,
+    carbs       FLOAT           NOT NULL DEFAULT 0,
+    protein     FLOAT           NOT NULL DEFAULT 0,
+    fat         FLOAT           NOT NULL DEFAULT 0,
     PRIMARY KEY (id),
     CONSTRAINT fk_menu_nutrient_menu FOREIGN KEY (menu_id)
         REFERENCES menu (id)

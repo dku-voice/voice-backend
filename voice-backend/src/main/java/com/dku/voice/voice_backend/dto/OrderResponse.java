@@ -40,6 +40,7 @@ public class OrderResponse {
         private Integer quantity;
         private Integer unitPrice;
         private Integer subtotal;
+        private List<SelectedOptionInfo> options;
 
         public static OrderItemResponse from(com.dku.voice.voice_backend.entity.OrderItem item) {
             return OrderItemResponse.builder()
@@ -49,7 +50,26 @@ public class OrderResponse {
                     .quantity(item.getQuantity())
                     .unitPrice(item.getUnitPrice())
                     .subtotal(item.getUnitPrice() * item.getQuantity())
+                    .options(item.getOptions().stream()
+                            .map(o -> SelectedOptionInfo.builder()
+                                    .optionId(o.getMenuOption().getId())
+                                    .nameKo(o.getMenuOption().getNameKo())
+                                    .nameEn(o.getMenuOption().getNameEn())
+                                    .optionType(o.getMenuOption().getOptionType())
+                                    .extraPrice(o.getMenuOption().getExtraPrice())
+                                    .build())
+                            .toList())
                     .build();
         }
+    }
+
+    @Getter
+    @Builder
+    public static class SelectedOptionInfo {
+        private Long optionId;
+        private String nameKo;
+        private String nameEn;
+        private String optionType;
+        private Integer extraPrice;
     }
 }
