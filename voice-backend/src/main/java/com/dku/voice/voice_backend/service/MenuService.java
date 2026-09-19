@@ -2,8 +2,10 @@ package com.dku.voice.voice_backend.service;
 
 import com.dku.voice.voice_backend.dto.MenuResponse;
 import com.dku.voice.voice_backend.entity.Menu;
+import com.dku.voice.voice_backend.event.MenuStatusChangedEvent;
 import com.dku.voice.voice_backend.repository.MenuRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -15,12 +17,12 @@ import java.util.stream.Collectors;
 public class MenuService {
 
     private final MenuRepository menuRepository;
+    private final ApplicationEventPublisher eventPublisher;
 
     /**
      * 전체 활성 메뉴 조회 (트랜잭션만)
      * - 트랜잭션 안에서 DTO 변환까지 완료
-     * - Session이 열린 상태에서 LAZY 필드 접근 보장
-     * - ArrayList 반환 → activateDefaultTyping과 호환 (역직렬화 가능)
+     * - ArrayList 반환 → activateDefaultTyping과 호환
      */
     @Transactional(readOnly = true)
     public List<MenuResponse> findAllActive() {
@@ -32,8 +34,6 @@ public class MenuService {
 
     /**
      * 카테고리별 활성 메뉴 조회 (트랜잭션만)
-     * - 트랜잭션 안에서 DTO 변환까지 완료
-     * - ArrayList 반환 → activateDefaultTyping과 호환
      */
     @Transactional(readOnly = true)
     public List<MenuResponse> findActiveByCategoryId(Long categoryId) {
@@ -45,8 +45,8 @@ public class MenuService {
 
     /**
      * 메뉴 상태 변경 (관리자용)
-     * - AdminMenuController 구현 시 호출
-     * - 변경 후 캐시 무효화는 MenuCacheService.updateMenuStatus()에서 처리
+     * - DB 변경 후 MenuStatusChangedEvent 발행
+     * - 트랜잭션 커밋 완료 후 MenuCacheService에서 캐시 삭제
      */
     @Transactional
     public Menu updateStatus(Long menuId, Menu.MenuStatus status) {
@@ -54,6 +54,10 @@ public class MenuService {
                 .orElseThrow(() -> new IllegalArgumentException(
                         "메뉴를 찾을 수 없습니다. menuId=" + menuId));
         menu.changeStatus(status);
+
+        // 트랜잭션 커밋 후 캐시 삭제를 위한 이벤트 발행
+        eventPublisher.publishEvent(new MenuStatusChangedEvent(menuId));
+
         return menu;
     }
 }

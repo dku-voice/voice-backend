@@ -2,11 +2,14 @@ package com.dku.voice.voice_backend.service;
 
 import com.dku.voice.voice_backend.dto.MenuResponse;
 import com.dku.voice.voice_backend.entity.Menu;
+import com.dku.voice.voice_backend.event.MenuStatusChangedEvent;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.event.TransactionPhase;
+import org.springframework.transaction.event.TransactionalEventListener;
 
 import java.util.List;
 
@@ -38,13 +41,27 @@ public class MenuCacheService {
     }
 
     /**
-     * 메뉴 상태 변경 + 전체 캐시 무효화 (관리자용)
-     * - 변경된 메뉴 상태가 다음 조회 시 즉시 반영됨
+     * 메뉴 상태 변경 (관리자용)
+     * - MenuService.updateStatus()에서 이벤트 발행
+     * - 트랜잭션 커밋 완료 후 onMenuStatusChanged()에서 Write-Through
      */
-    @CacheEvict(value = "menus", allEntries = true)
     public Menu updateMenuStatus(Long menuId, Menu.MenuStatus status) {
-        log.info("[MenuCache] 메뉴 상태 변경 및 캐시 무효화 - menuId={}, status={}", menuId, status);
+        log.info("[MenuCache] 메뉴 상태 변경 요청 - menuId={}, status={}", menuId, status);
         return menuService.updateStatus(menuId, status);
+    }
+
+    /**
+     * Write-Through - 트랜잭션 커밋 완료 후 캐시 삭제 후 즉시 최신 데이터로 채움
+     * - AFTER_COMMIT: 커밋 완료 후 실행 보장 → 롤백 시 캐시 그대로 유지
+     * - evictAllMenuCache(): 기존 캐시 삭제
+     * - getAllMenus(): DB에서 최신 데이터로 즉시 채움
+     * - 캐시가 비어있는 시간 최소화, 항상 최신 데이터 유지
+     */
+    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
+    public void onMenuStatusChanged(MenuStatusChangedEvent event) {
+        log.info("[MenuCache] 커밋 완료 - Write-Through 캐시 업데이트 - menuId={}", event.getMenuId());
+        evictAllMenuCache();  // 1. 기존 캐시 삭제
+        getAllMenus();         // 2. DB에서 최신 데이터로 즉시 채움
     }
 
     /**
