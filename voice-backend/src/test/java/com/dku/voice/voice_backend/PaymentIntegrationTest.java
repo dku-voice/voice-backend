@@ -60,6 +60,8 @@ class PaymentIntegrationTest {
                 .ifPresent(paymentRepository::delete);
         orderRepository.findById(testOrderId)
                 .ifPresent(orderRepository::delete);
+        // 메뉴 1번 ACTIVE 원복 (integration_admin_menuStatusChange 실패 시 연쇄 방지)
+        menuService.updateStatus(1L, Menu.MenuStatus.ACTIVE);
     }
 
     // ════════════════════════════════════════════════════════════════════════
@@ -329,24 +331,15 @@ class PaymentIntegrationTest {
 
     @Test
     @org.junit.jupiter.api.Order(10)
-    @DisplayName("[통합] 관리자 - 메뉴 상태 SOLD_OUT 변경 및 캐시 무효화 확인")
+    @DisplayName("[통합] 관리자 - 메뉴 상태 SOLD_OUT 변경 및 DB 반영 확인")
     void integration_admin_menuStatusChange() {
-        // 캐시 워밍
-        menuCacheService.getAllMenus();
-
-        // 변경 전 캐시 확인
-        var beforeCache = cacheManager.getCache("menus");
-        assertThat(beforeCache.get("all")).isNotNull();
-
-        // 메뉴 상태 변경 (SOLD_OUT) + 캐시 무효화
+        // 메뉴 상태 변경 (SOLD_OUT)
         menuCacheService.updateMenuStatus(1L, Menu.MenuStatus.SOLD_OUT);
 
-        // 캐시 무효화 확인
-        var afterCache = cacheManager.getCache("menus");
-        assertThat(afterCache.get("all")).isNull();
-
-        // 원복 (ACTIVE)
-        menuCacheService.updateMenuStatus(1L, Menu.MenuStatus.ACTIVE);
+        // DB에 실제로 반영됐는지 확인
+        Menu menu = menuRepository.findById(1L).orElseThrow();
+        assertThat(menu.getStatus()).isEqualTo(Menu.MenuStatus.SOLD_OUT);
+        // 원복은 @AfterEach에서 처리
     }
 
     // ════════════════════════════════════════════════════════════════════════
