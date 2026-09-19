@@ -2,6 +2,19 @@ spring:
   main:
     allow-circular-references: true
 
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:voice-kafka:9092}
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+    consumer:
+      group-id: voice-backend
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+      auto-offset-reset: latest
+      properties:
+        spring.json.trusted.packages: "com.dku.voice.voice_backend.dto"
+
   datasource:
     url: jdbc:mysql://localhost:3306/voicedb?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
     username: root
@@ -49,3 +62,7 @@ logging:
 
 server:
   port: 8080
+
+jwt:
+  secret-key: ${JWT_SECRET_KEY:voiceKioskSecretKey2026DKUCapstoneProjectSecretKey}
+  expiration: 86400000  # 24시간 (ms)
