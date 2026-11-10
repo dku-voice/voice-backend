@@ -1,11 +1,13 @@
 package com.dku.voice.voice_backend.service;
 
+import com.dku.voice.voice_backend.dto.OrderEvent;
 import com.dku.voice.voice_backend.dto.PaymentCancelRequest;
 import com.dku.voice.voice_backend.dto.PaymentCancelResponse;
 import com.dku.voice.voice_backend.dto.PaymentRequest;
 import com.dku.voice.voice_backend.dto.PaymentResponse;
 import com.dku.voice.voice_backend.entity.Order;
 import com.dku.voice.voice_backend.entity.Payment;
+import com.dku.voice.voice_backend.event.OrderPaidEvent;
 import com.dku.voice.voice_backend.repository.OrderRepository;
 import com.dku.voice.voice_backend.repository.PaymentRepository;
 import lombok.RequiredArgsConstructor;
@@ -14,6 +16,7 @@ import org.redisson.api.RLock;
 import org.redisson.api.RedissonClient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
@@ -35,6 +38,7 @@ public class PaymentService {
     private final OrderRepository orderRepository;
     private final RedissonClient redissonClient;
     private final RestClient restClient;
+    private final ApplicationEventPublisher eventPublisher;
 
     @Lazy
     @Autowired
@@ -137,7 +141,7 @@ public class PaymentService {
 
         // 8. Order 상태 PAID
         order.changeStatus(Order.OrderStatus.PAID);
-
+        eventPublisher.publishEvent(new OrderPaidEvent(OrderEvent.from(order)));
         return PaymentResponse.from(payment);
     }
 

@@ -1,6 +1,5 @@
 package com.dku.voice.voice_backend.service;
 
-import com.dku.voice.voice_backend.dto.OrderEvent;
 import com.dku.voice.voice_backend.dto.OrderItemRequest;
 import com.dku.voice.voice_backend.dto.OrderRequest;
 import com.dku.voice.voice_backend.dto.OrderResponse;
@@ -15,16 +14,12 @@ import com.dku.voice.voice_backend.repository.OrderRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import com.dku.voice.voice_backend.service.KafkaProducerService;
-import com.dku.voice.voice_backend.dto.OrderEvent;
-import lombok.extern.slf4j.Slf4j;
+
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
-@Slf4j
 @Service
 @RequiredArgsConstructor
 public class OrderService {
@@ -32,7 +27,7 @@ public class OrderService {
     private final OrderRepository orderRepository;
     private final MenuRepository menuRepository;
     private final MenuOptionRepository menuOptionRepository;
-    private final KafkaProducerService kafkaProducerService;
+
     /**
      * 주문 생성
      * 1. 메뉴 조회 및 상태 검증 (ACTIVE만 허용)
@@ -40,6 +35,9 @@ public class OrderService {
      * 3. 단가 계산: 메뉴 가격 + 선택 옵션 추가금액 합계
      * 4. 총금액 계산 후 Order 생성 (서버 계산 → 위변조 방지)
      * 5. Order + OrderItem + OrderItemOption 저장
+     *
+     * KDS 전달용 Kafka 이벤트는 여기서 발행하지 않는다.
+     * 결제 승인(PAID) 커밋 이후 PaymentService → OrderEventListener 경로로 발행한다.
      */
     @Transactional
     public OrderResponse createOrder(OrderRequest request) {
@@ -110,8 +108,6 @@ public class OrderService {
 
         orderRepository.save(order);
 
-        kafkaProducerService.sendOrderEvent(OrderEvent.from(order));
-        log.info("[Order] 주문 생성 완료 및 Kafka 발행 - orderNumber={}", order.getOrderNumber());
         return OrderResponse.from(order);
     }
 
