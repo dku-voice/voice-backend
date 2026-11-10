@@ -6,10 +6,12 @@ import com.dku.voice.voice_backend.entity.Order;
 import com.dku.voice.voice_backend.repository.*;
 import com.dku.voice.voice_backend.service.*;
 import org.junit.jupiter.api.*;
+import org.mockito.ArgumentCaptor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.cache.CacheManager;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import java.util.List;
@@ -19,6 +21,10 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.assertj.core.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 
 @SpringBootTest
 @ActiveProfiles("default")
@@ -35,6 +41,9 @@ class PaymentIntegrationTest {
     @Autowired MenuCacheService menuCacheService;
     @Autowired SseEmitterService sseEmitterService;
     @Autowired MenuService menuService;
+
+    // Kafka 브로커 없이 테스트하고, 발행 여부만 검증한다 (테스트마다 자동 초기화)
+    @MockitoBean KafkaProducerService kafkaProducerService;
 
     private static Long testOrderId;
 
@@ -372,5 +381,52 @@ class PaymentIntegrationTest {
         List<com.dku.voice.voice_backend.entity.Payment> payments =
                 paymentRepository.findByStoreId("store-default");
         assertThat(payments).isNotEmpty();
+    }
+
+    // ════════════════════════════════════════════════════════════════════════
+    // 10. Kafka 발행 시점 (결제 승인 커밋 후)
+    // ════════════════════════════════════════════════════════════════════════
+
+    @Test
+    @org.junit.jupiter.api.Order(13)
+    @DisplayName("[통합] Kafka - 주문 생성만으로는 발행되지 않고, 결제 승인 후 1회 발행된다")
+    void integration_kafka_publishedAfterPayment() {
+        // setUp에서 주문 생성만 한 상태 → 발행 없음
+        verify(kafkaProducerService, never()).sendOrderEvent(any());
+
+        PaymentRequest request = PaymentRequest.builder()
+                .pgProvider("TEST")
+                .pgTransactionId("tgen-kafka-001")
+                .orderId(testOrderId)
+                .amount(2800)
+                .method("CARD")
+                .build();
+        paymentService.confirmPayment(request);
+
+        ArgumentCaptor<OrderEvent> captor = ArgumentCaptor.forClass(OrderEvent.class);
+        verify(kafkaProducerService, times(1)).sendOrderEvent(captor.capture());
+
+        OrderEvent event = captor.getValue();
+        assertThat(event.getOrderId()).isEqualTo(testOrderId);
+        assertThat(event.getStoreId()).isEqualTo("store-default");
+        assertThat(event.getItems()).isNotEmpty();
+    }
+
+    @Test
+    @org.junit.jupiter.api.Order(14)
+    @DisplayName("[통합] Kafka - 결제 실패(위변조) 시에는 발행되지 않는다")
+    void integration_kafka_notPublishedOnFailedPayment() {
+        PaymentRequest tampered = PaymentRequest.builder()
+                .pgProvider("TEST")
+                .pgTransactionId("tgen-kafka-002")
+                .orderId(testOrderId)
+                .amount(1000)
+                .method("CARD")
+                .build();
+
+        assertThatThrownBy(() -> paymentService.confirmPayment(tampered))
+                .isInstanceOf(IllegalArgumentException.class);
+
+        verify(kafkaProducerService, never()).sendOrderEvent(any());
     }
 }

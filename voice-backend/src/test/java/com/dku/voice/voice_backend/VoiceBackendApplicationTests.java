@@ -2,6 +2,7 @@ package com.dku.voice.voice_backend;
 
 import com.dku.voice.voice_backend.dto.*;
 import com.dku.voice.voice_backend.entity.*;
+import com.dku.voice.voice_backend.event.OrderPaidEvent;
 import com.dku.voice.voice_backend.repository.*;
 import com.dku.voice.voice_backend.service.*;
 import org.junit.jupiter.api.BeforeEach;
@@ -16,6 +17,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.redisson.api.RLock;
 import org.redisson.api.RedissonClient;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.web.client.RestClient;
 
@@ -43,7 +45,6 @@ class VoiceBackendApplicationTests {
         @Mock OrderRepository orderRepository;
         @Mock MenuRepository menuRepository;
         @Mock MenuOptionRepository menuOptionRepository;
-        @Mock KafkaProducerService kafkaProducerService;
         @InjectMocks OrderService orderService;
 
         @Test
@@ -56,7 +57,6 @@ class VoiceBackendApplicationTests {
             given(menuRepository.findById(5L)).willReturn(Optional.of(cola));
             given(menuOptionRepository.findAllById(List.of())).willReturn(List.of());
             given(orderRepository.save(any())).willAnswer(i -> i.getArgument(0));
-            doNothing().when(kafkaProducerService).sendOrderEvent(any());
 
             OrderRequest request = orderRequest(
                     new long[]{1L, 5L},
@@ -68,7 +68,6 @@ class VoiceBackendApplicationTests {
             assertThat(response.getTotalPrice()).isEqualTo(15000);
             assertThat(response.getItems()).hasSize(2);
             verify(orderRepository).save(any(Order.class));
-            verify(kafkaProducerService).sendOrderEvent(any());
         }
 
         @ParameterizedTest(name = "{0} 메뉴 주문 시도 → 예외 발생")
@@ -110,6 +109,7 @@ class VoiceBackendApplicationTests {
         @Mock OrderRepository orderRepository;
         @Mock RedissonClient redissonClient;
         @Mock RestClient restClient;
+        @Mock ApplicationEventPublisher eventPublisher;
         @Mock RLock rLock;
         @InjectMocks PaymentService paymentService;
 
@@ -124,7 +124,7 @@ class VoiceBackendApplicationTests {
         }
 
         @Test
-        @DisplayName("정상 결제 승인 → Order 상태가 PAID로 변경된다")
+        @DisplayName("정상 결제 승인 → Order 상태가 PAID로 변경되고 OrderPaidEvent가 발행된다")
         void confirmPayment_success() throws InterruptedException {
             Order order = pendingOrder();
             given(orderRepository.findById(1001L)).willReturn(Optional.of(order));
@@ -138,10 +138,11 @@ class VoiceBackendApplicationTests {
             assertThat(order.getStatus()).isEqualTo(Order.OrderStatus.PAID);
             assertThat(response.getAmount()).isEqualTo(12000);
             assertThat(response.getPgTransactionId()).isEqualTo("tgen_test_001");
+            verify(eventPublisher, times(1)).publishEvent(any(OrderPaidEvent.class));
         }
 
         @Test
-        @DisplayName("위변조 검증 - 요청 금액이 주문 금액과 다르면 예외 발생")
+        @DisplayName("위변조 검증 - 요청 금액이 주문 금액과 다르면 예외 발생, 이벤트 미발행")
         void confirmPayment_amountMismatch_throwsException() throws InterruptedException {
             Order order = pendingOrder();
             given(orderRepository.findById(1001L)).willReturn(Optional.of(order));
@@ -151,6 +152,8 @@ class VoiceBackendApplicationTests {
             assertThatThrownBy(() -> paymentService.confirmPayment(request))
                     .isInstanceOf(IllegalArgumentException.class)
                     .hasMessageContaining("결제 금액이 주문 금액과 다릅니다");
+
+            verify(eventPublisher, never()).publishEvent(any(Object.class));
         }
 
         @Test
@@ -164,6 +167,8 @@ class VoiceBackendApplicationTests {
             assertThatThrownBy(() -> paymentService.confirmPayment(request))
                     .isInstanceOf(IllegalStateException.class)
                     .hasMessageContaining("이미 결제 완료된 주문입니다");
+
+            verify(eventPublisher, never()).publishEvent(any(Object.class));
         }
 
         @Test
@@ -211,7 +216,7 @@ class VoiceBackendApplicationTests {
         }
 
         @Test
-        @DisplayName("결제 승인 중 예외 발생 시 Payment가 저장되지 않는다 (롤백)")
+        @DisplayName("결제 승인 중 예외 발생 시 Payment가 저장되지 않는다 (롤백), 이벤트 미발행")
         void confirmPayment_exceptionDuringProcess_paymentNotSaved() throws InterruptedException {
             Order order = pendingOrder();
             given(orderRepository.findById(1001L)).willReturn(Optional.of(order));
@@ -224,6 +229,7 @@ class VoiceBackendApplicationTests {
                     .isInstanceOf(RuntimeException.class);
 
             assertThat(order.getStatus()).isEqualTo(Order.OrderStatus.PENDING);
+            verify(eventPublisher, never()).publishEvent(any(Object.class));
         }
 
         @Test
