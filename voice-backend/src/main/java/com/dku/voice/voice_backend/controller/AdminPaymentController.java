@@ -17,7 +17,7 @@ import java.util.stream.Collectors;
 
 @Slf4j
 @RestController
-@RequestMapping("/admin/payments")
+@RequestMapping("/api/admin/payments")
 @RequiredArgsConstructor
 public class AdminPaymentController {
 

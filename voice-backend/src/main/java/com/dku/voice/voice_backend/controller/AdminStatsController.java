@@ -14,7 +14,7 @@ import java.time.LocalDate;
 
 @Slf4j
 @RestController
-@RequestMapping("/admin/stats")
+@RequestMapping("/api/admin/stats")
 @RequiredArgsConstructor
 public class AdminStatsController {
 
@@ -22,7 +22,7 @@ public class AdminStatsController {
     private final PaymentRepository paymentRepository;
 
     /**
-     * GET /admin/stats/sales?storeId=&from=&to=
+     * GET /api/admin/stats/sales?storeId=&from=&to=
      * 매출 통계
      * - 기간별 총 매출
      * - 총 주문 수
@@ -44,7 +44,7 @@ public class AdminStatsController {
     }
 
     /**
-     * GET /admin/stats/menus?storeId=&from=&to=
+     * GET /api/admin/stats/menus?storeId=&from=&to=
      * 인기 메뉴 통계
      * - 기간별 메뉴별 주문 수량
      * - 내림차순 정렬

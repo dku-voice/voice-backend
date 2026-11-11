@@ -36,20 +36,25 @@ public class SecurityConfig {
                 session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .csrf(csrf -> csrf.disable())
             .authorizeHttpRequests(auth -> auth
-                // 키오스크 공개 API
+                // ※ 규칙은 위에서부터 처음 일치하는 것이 적용된다.
+                //   /api/** 공개 규칙은 반드시 /api/auth, /api/kds, /api/admin 규칙보다 아래에 둘 것.
+                //   위로 올리면 관리자·KDS API가 로그인 없이 열린다.
+
+                // 인증 API: 로그인만 공개, 로그아웃 등 나머지는 인증 필요
+                .requestMatchers("/api/auth/login").permitAll()
+                .requestMatchers("/api/auth/**").authenticated()
+                // KDS - 주방 직원 이상
+                .requestMatchers("/api/kds/**").hasAnyRole("STAFF", "ADMIN")
+                // 관리자 전용
+                .requestMatchers("/api/admin/**").hasRole("ADMIN")
+                // 키오스크 공개 API (위 규칙에 걸리지 않은 /api/** 만 해당)
                 .requestMatchers("/api/**").permitAll()
-                // 인증 API
-                .requestMatchers("/auth/login").permitAll()
                 // Swagger
                 .requestMatchers(
                     "/swagger-ui/**",
                     "/swagger-ui.html",
                     "/v3/api-docs/**"
                 ).permitAll()
-                // KDS - 주방 직원 이상
-                .requestMatchers("/kds/**").hasAnyRole("STAFF", "ADMIN")
-                // 관리자 전용
-                .requestMatchers("/admin/**").hasRole("ADMIN")
                 .anyRequest().authenticated()
             )
             // JWT 필터를 UsernamePasswordAuthenticationFilter 앞에 등록

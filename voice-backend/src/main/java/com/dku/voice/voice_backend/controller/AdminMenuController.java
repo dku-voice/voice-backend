@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.*;
 
 @Slf4j
 @RestController
-@RequestMapping("/admin/menus")
+@RequestMapping("/api/admin/menus")
 @RequiredArgsConstructor
 public class AdminMenuController {
 

@@ -17,7 +17,7 @@ import java.util.stream.Collectors;
 
 @Slf4j
 @RestController
-@RequestMapping("/kds")
+@RequestMapping("/api/kds")
 @RequiredArgsConstructor
 public class KdsController {
 
