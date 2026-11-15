@@ -76,4 +76,23 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
             @Param("from") LocalDateTime from,
             @Param("to") LocalDateTime to
     );
+
+    /**
+     * 결제 재확인 대상 조회 (정산 대조 스케줄러용)
+     * - 결제 승인을 시도했지만 결과를 확인하지 못해 아직 PENDING인 주문
+     * - 마지막 시도/확인 후 threshold 이전이고, 재확인 횟수가 maxCount 미만인 것
+     */
+    @Query("""
+        SELECT o
+        FROM Order o
+        WHERE o.status = :status
+          AND o.paymentRequestedAt IS NOT NULL
+          AND o.paymentCheckCount < :maxCount
+          AND COALESCE(o.paymentCheckedAt, o.paymentRequestedAt) < :threshold
+        """)
+    List<Order> findPaymentCheckTargets(
+            @Param("status") Order.OrderStatus status,
+            @Param("maxCount") int maxCount,
+            @Param("threshold") LocalDateTime threshold
+    );
 }
