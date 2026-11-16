@@ -26,11 +26,11 @@ public class MenuNutrient {
     private Integer sodium;
 
     @Column(nullable = false)
-    private Integer carbs;
+    private Double protein;
 
     @Column(nullable = false)
-    private Integer protein;
+    private Double fat;
 
     @Column(nullable = false)
-    private Integer fat;
+    private Double carbs;
 }

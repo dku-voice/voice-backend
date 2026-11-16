@@ -70,7 +70,7 @@ public class TestFixture {
         return Payment.builder()
                 .id(1L)
                 .order(order)
-                .pgProvider("TOSS")
+                .pgProvider("TEST")
                 .pgTransactionId(pgTransactionId)
                 .method(Payment.PaymentMethod.TOSS)
                 .amount(order.getTotalPrice())
@@ -95,7 +95,7 @@ public class TestFixture {
 
     public static PaymentRequest paymentRequest(String pgTransactionId, Long orderId, int amount) {
         return PaymentRequest.builder()
-                .pgProvider("TOSS")
+                .pgProvider("TEST")
                 .pgTransactionId(pgTransactionId)
                 .orderId(orderId)
                 .amount(amount)
