@@ -26,16 +26,15 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
      */
     Optional<Order> findByOrderNumber(String orderNumber);
 
-    /**
-     * 주문 + 아이템 + 메뉴 + 선택 옵션 한 번에 조회 (영수증 출력용)
+        /**
+     * 주문 + 아이템 + 메뉴 조회 (영수증 출력용)
+     * 컬렉션 fetch join은 하나만 가능하므로 options는 지연 로딩(@BatchSize)으로 가져온다.
      */
     @Query("""
         SELECT DISTINCT o
         FROM Order o
         JOIN FETCH o.orderItems oi
         JOIN FETCH oi.menu
-        LEFT JOIN FETCH oi.options oio
-        LEFT JOIN FETCH oio.menuOption
         WHERE o.id = :orderId
         """)
     Optional<Order> findByIdWithItems(@Param("orderId") Long orderId);
@@ -48,8 +47,6 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
         FROM Order o
         JOIN FETCH o.orderItems oi
         JOIN FETCH oi.menu
-        LEFT JOIN FETCH oi.options oio
-        LEFT JOIN FETCH oio.menuOption
         WHERE o.status = :status
         ORDER BY o.orderedAt ASC
         """)
