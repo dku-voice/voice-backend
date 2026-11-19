@@ -20,5 +20,14 @@ public class Allergen {
  
     @Column(name = "name_en", nullable = false, length = 50)
     private String nameEn;
+
+    @Column(name = "name_ja", length = 100)
+    private String nameJa;
+
+    @Column(name = "name_es", length = 100)
+    private String nameEs;
+
+    @Column(name = "name_th", length = 100)
+    private String nameTh;
 }
  

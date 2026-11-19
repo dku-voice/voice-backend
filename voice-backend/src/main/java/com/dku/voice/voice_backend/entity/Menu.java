@@ -29,6 +29,15 @@ public class Menu {
     @Column(name = "name_en", nullable = false, length = 100)
     private String nameEn;
 
+    @Column(name = "name_ja", length = 100)
+    private String nameJa;
+
+    @Column(name = "name_es", length = 100)
+    private String nameEs;
+
+    @Column(name = "name_th", length = 100)
+    private String nameTh;
+
     @Column(name = "description_ko", length = 255)
     private String descriptionKo;
 
